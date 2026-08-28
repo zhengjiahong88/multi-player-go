@@ -1,0 +1,1 @@
+record NetResult(double[] policy, double[] value) {}

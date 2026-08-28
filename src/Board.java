@@ -6,40 +6,18 @@ record Board(int[][] board, int player) {
     Board(int player) {
         this(new int[Main.SIZE][Main.SIZE], player);
     }
-    Board(Board parent) {
-        this(parent.nextPlayer());
+
+    private Board(Board parent) {
+        this(parent.player == Main.PLAYER_COUNT ? 1 : parent.player + 1);
         for (int i = 0; i < Main.SIZE; ++i) board[i] = parent.board[i].clone();
     }
 
-    int get(Pos pos) {
+    private int get(Pos pos) {
         return board[pos.row()][pos.col()];
     }
 
-    void set(Pos pos, int value) {
+    private void set(Pos pos, int value) {
         board[pos.row()][pos.col()] = value;
-    }
-
-    Group getGroup(Pos pos) {
-        int color = get(pos);
-        Group group = new Group();
-        pos.search(group.pieces(), n -> {
-            if (get(n) == 0) {
-                group.liberties().add(n);
-                return false;
-            }
-            return get(n) == color;
-        });
-        return group;
-    }
-
-    double[][][] getState() {
-        var state = new double[Main.PLAYER_COUNT][Main.SIZE][Main.SIZE];
-        for (Pos pos : Pos.ALL_POS) if (get(pos) != 0) state[get(pos) - 1][pos.row()][pos.col()] = 1;
-        return state;
-    }
-
-    int nextPlayer() {
-        return player == Main.PLAYER_COUNT ? 1 : player + 1;
     }
 
     double[] getZ() {
@@ -68,8 +46,10 @@ record Board(int[][] board, int player) {
         return z;
     }
 
-    Board pass() {
-        return new Board(this);
+    double[][][] getState() {
+        var state = new double[Main.PLAYER_COUNT][Main.SIZE][Main.SIZE];
+        for (Pos pos : Pos.ALL_POS) if (get(pos) != 0) state[get(pos) - 1][pos.row()][pos.col()] = 1;
+        return state;
     }
 
     Board move(Pos pos) {
@@ -83,6 +63,10 @@ record Board(int[][] board, int player) {
         return board;
     }
 
+    Board pass() {
+        return new Board(this);
+    }
+
     ArrayList<Pos> legalMoves(Node parent) {
         var moves = new ArrayList<Pos>();
         for (Pos pos : Pos.ALL_POS) if (get(pos) == 0) {
@@ -94,14 +78,27 @@ record Board(int[][] board, int player) {
         return moves;
     }
 
-    boolean isEqual(Board other) {
-        return Arrays.deepEquals(board, other.board);
-    }
-
     void print() {
         for (var row : board) {
             for (int value : row) System.out.print(value + " ");
             System.out.println();
         }
+    }
+
+    private Group getGroup(Pos pos) {
+        int color = get(pos);
+        Group group = new Group();
+        pos.search(group.pieces(), n -> {
+            if (get(n) == 0) {
+                group.liberties().add(n);
+                return false;
+            }
+            return get(n) == color;
+        });
+        return group;
+    }
+
+    private boolean isEqual(Board other) {
+        return Arrays.deepEquals(board, other.board);
     }
 }

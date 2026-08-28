@@ -11,44 +11,12 @@ class Node implements Iterable<Node> {
 
     final Node[] children = new Node[Main.ACTION_SIZE];
     final Node parent;
-    final double[] valueSum = new double[Main.PLAYER_COUNT];
     final Board board;
+    final double[] valueSum = new double[Main.PLAYER_COUNT];
     double prior, pi;
     int passes, visits;
 
-    Node() throws IOException {
-        board = new Board(1);
-        parent = null;
-        Node node = this;
-        for (; node.gameContinue(); node.board.print()) {
-            for (int i = 0; i < SIMULATIONS; ++i) {
-                Node leaf = node.selection();
-                leaf.backPropagation(leaf.expansion());
-            }
-            int total = 0;
-            for (Node child : node) total += child.visits;
-            for (Node child : node) child.pi = (double) child.visits / total;
-            double r = Math.random(), sum = 0;
-            for (Node child : node) {
-                sum += child.pi;
-                if (r < sum) {
-                    node = child;
-                    break;
-                }
-            }
-        }
-        var trainingData = new ArrayList<TrainingData>();
-        for (node = node.parent; node != null; node = node.parent) {
-            double[] pi = new double[Main.ACTION_SIZE];
-            for (int i = 0; i < Main.ACTION_SIZE; ++i) if (node.children[i] != null) pi[i] = node.children[i].pi;
-
-            trainingData.add(new TrainingData(node.board.getState(), pi, node.board.getZ()));
-        }
-        Collections.reverse(trainingData);
-        System.out.println("資料數量 =" + trainingData.size());
-    }
-
-    Node(Node parent, Pos pos) {
+    Node(Node parent, double[] probabilities, Pos pos) {
         passes = parent.passes;
         if (pos == null) {
             this.board = parent.board.pass();
@@ -59,6 +27,23 @@ class Node implements Iterable<Node> {
             passes = 0;
         }
         this.parent = parent;
+        int index = moveIndex(pos);
+        prior = probabilities[index];
+        parent.children[index] = this;
+    }
+
+    Node() throws IOException {
+        board = new Board(1);
+        parent = null;
+        Node node = this;
+        for (; node.gameContinue(); node.board.print()) {
+            for (int i = 0; i < SIMULATIONS; ++i) {
+                Node leaf = node.selection();
+                leaf.backPropagation(leaf.expansion());
+            }
+            node = node.calculatePiAndSelectMove();
+        }
+        node.createTrainingData();
     }
 
     double ucb() {
@@ -102,12 +87,7 @@ class Node implements Iterable<Node> {
             sum += probabilities[i];
         }
         for (int i = 0; i < Main.ACTION_SIZE; ++i) probabilities[i] /= sum;
-        for (Pos move : moves) {
-            Node child = new Node(this, move);
-            int index = moveIndex(move);
-            child.prior = probabilities[index];
-            children[index] = child;
-        }
+        for (Pos move : moves) new Node(this, probabilities, move);
         return result.value();
     }
 
@@ -116,6 +96,30 @@ class Node implements Iterable<Node> {
             for (int i = 0; i < Main.PLAYER_COUNT; ++i) node.valueSum[i] += value[i];
             ++node.visits;
         }
+    }
+
+    Node calculatePiAndSelectMove() {
+        int total = 0;
+        for (Node child : this) total += child.visits;
+        for (Node child : this) child.pi = (double) child.visits / total;
+        double r = Math.random(), sum = 0;
+        for (Node child : this) {
+            sum += child.pi;
+            if (r < sum) return child;
+        }
+        return null;
+    }
+
+    void createTrainingData() {
+        var trainingData = new ArrayList<TrainingData>();
+        for (Node node = parent; node != null; node = node.parent) {
+            double[] pi = new double[Main.ACTION_SIZE];
+            for (int i = 0; i < Main.ACTION_SIZE; ++i) if (node.children[i] != null) pi[i] = node.children[i].pi;
+
+            trainingData.add(new TrainingData(node.board.getState(), pi, node.board.getZ()));
+        }
+        Collections.reverse(trainingData);
+        System.out.println("資料數量 =" + trainingData.size());
     }
 
     @Override

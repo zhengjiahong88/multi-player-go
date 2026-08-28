@@ -1,0 +1,16 @@
+All factual content is derived from the local project source as inspected on 2026-08-28.
+
+Primary sources:
+- D:\IntelliJ IDEA\multi-player go\README.md
+- D:\IntelliJ IDEA\multi-player go\src\Main.java
+- D:\IntelliJ IDEA\multi-player go\src\Board.java
+- D:\IntelliJ IDEA\multi-player go\src\Pos.java
+- D:\IntelliJ IDEA\multi-player go\src\Group.java
+- D:\IntelliJ IDEA\multi-player go\src\Node.java
+- D:\IntelliJ IDEA\multi-player go\src\PythonNet.java
+- D:\IntelliJ IDEA\multi-player go\src\NetResult.java
+- D:\IntelliJ IDEA\multi-player go\src\TrainingData.java
+- D:\IntelliJ IDEA\multi-player go\net.py
+
+No external web claims or externally sourced image assets are used.
+

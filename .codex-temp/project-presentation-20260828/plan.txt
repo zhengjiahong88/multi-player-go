@@ -1,0 +1,12 @@
+Communication job: By the end, computer science students should understand how this project connects Go rules, Monte Carlo tree search, a PyTorch policy/value network, and self-play training data into one AlphaZero-style prototype.
+
+Narrative arc:
+1. Establish the project goal and actual runtime configuration.
+2. Follow one move through the system architecture.
+3. Explain the board and rule primitives that make search possible.
+4. Walk through selection, expansion, and backpropagation.
+5. Show the Java/Python boundary and the state/pi/z training record.
+6. Close with what is implemented, what is not yet trained, and the next engineering steps.
+
+Visual direction: Codex Grid-inspired white canvas, black typography, pale gray structure, blue accent, flat composition, and varied technical layouts.
+

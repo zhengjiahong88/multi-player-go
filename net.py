@@ -60,7 +60,7 @@ class Net(nn.Module):
         loss.backward()
         optimizer.step()
         torch.save({"model": net.state_dict(), "optimizer": optimizer.state_dict()}, MODEL_PATH)
-        print(policy_loss.item(), value_loss.item(), loss.item(), flush=True)
+        print(policy_loss.item(), value_loss.item(), loss.item(), file=sys.stderr, flush=True)
 
 
 net = Net()

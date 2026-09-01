@@ -20,7 +20,7 @@ record Board(int[][] board, int player) {
         board[pos.row()][pos.col()] = value;
     }
 
-    double[] getFinalResult() {
+    double[] getZ() {
         var scores = new int[Main.PLAYER_COUNT];
         var checkedEmpty = new HashSet<Pos>();
         for (Pos pos : Pos.ALL_POS) {

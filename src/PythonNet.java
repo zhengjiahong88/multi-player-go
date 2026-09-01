@@ -12,7 +12,7 @@ class PythonNet implements AutoCloseable {
         reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
     }
 
-    double[] read(int size) throws IOException {
+    private double[] read(int size) throws IOException {
         String line = reader.readLine();
         if (line == null) throw new IOException("晚安");
         var input = line.split(" ");
@@ -21,19 +21,19 @@ class PythonNet implements AutoCloseable {
         return output;
     }
 
-    void write(String string) throws IOException {
+    private void write(String string) throws IOException {
         writer.write(string);
         writer.newLine();
         writer.flush();
     }
 
-    void writeState(double[][][] state) throws IOException {
+    private void writeState(double[][][] state) throws IOException {
         StringBuilder s = new StringBuilder();
         for (var channel : state) for (var row : channel) for (double value : row) s.append(value).append(' ');
         write(s.toString());
     }
 
-    void writeList(double[] list) throws IOException {
+    private void writeList(double[] list) throws IOException {
         StringBuilder s = new StringBuilder();
         for (double d : list) s.append(d).append(' ');
         write(s.toString());
@@ -44,15 +44,13 @@ class PythonNet implements AutoCloseable {
         return new NetResult(read(Main.ACTION_SIZE), read(Main.PLAYER_COUNT));
     }
 
-    synchronized LearnResult learn(TrainingData[] trainingData, double[] z) throws IOException {
+    synchronized void learn(TrainingData[] trainingData, double[] z) throws IOException {
         write(trainingData.length + "");
         for (TrainingData td : trainingData) {
             writeState(td.state());
             writeList(td.pi());
         }
         writeList(z);
-        var loss = read(3);
-        return new LearnResult(loss[0], loss[1], loss[2]);
     }
 
     @Override

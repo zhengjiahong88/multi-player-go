@@ -2,21 +2,23 @@ import java.io.IOException;
 import java.util.*;
 
 class Node implements Iterable<Node> {
-    static final int SIMULATIONS = 100;
+    private static PythonNet NET;
+    private static final int SIMULATIONS = 1000;
 
-    static int moveIndex(Pos pos) {
+    private static int moveIndex(Pos pos) {
         if (pos == null) return Main.POINTS;
         return pos.toInt();
     }
 
-    final Node[] children = new Node[Main.ACTION_SIZE];
-    final Node parent;
+    private final Node[] children = new Node[Main.ACTION_SIZE];
+    private final Node parent;
     final Board board;
-    final double[] valueSum = new double[Main.PLAYER_COUNT];
-    double prior, searchPolicy;
-    int passes, visits;
+    private final double[] valueSum = new double[Main.PLAYER_COUNT];
+    private double prior, searchPolicy;
+    private int passes, visits;
 
-    Node(Node parent, double[] probabilities, Pos pos) {
+    Node(Node parent, double[] probabilities, Pos pos) throws IOException {
+        NET = new PythonNet();
         passes = parent.passes;
         if (pos == null) {
             this.board = parent.board.pass();
@@ -36,25 +38,22 @@ class Node implements Iterable<Node> {
         board = new Board(1);
         parent = null;
         Node node = this;
-        for (; node.gameContinue(); node.board.print()) {
-            for (int i = 0; i < SIMULATIONS; ++i) {
-                Node leaf = node.selection();
-                leaf.backPropagation(leaf.expansion());
-            }
-            node = node.selectMove();
+        for (; node.gameContinue(); node = node.selectMove()) for (int i = 0; i < SIMULATIONS; ++i) {
+            Node leaf = node.selection();
+            leaf.backPropagation(leaf.expansion());
         }
         node.createTrainingData();
     }
 
-    double ucb() {
+    private double ucb() {
         return (visits == 0 ? 0 : valueSum[parent.board.player() - 1] / visits) + 1.4 * prior * Math.sqrt(parent.visits) / (1 + visits);
     }
 
-    boolean gameContinue() {
+    private boolean gameContinue() {
         return passes < Main.PLAYER_COUNT;
     }
 
-    Node selection() {
+    private Node selection() {
         for (Node node = this; true;) {
             Node max = null;
             double maxValue = Double.NEGATIVE_INFINITY;
@@ -70,9 +69,9 @@ class Node implements Iterable<Node> {
         }
     }
 
-    double[] expansion() throws IOException {
-        if (!gameContinue()) return board.getFinalResult();
-        NetResult result = Main.NET.evaluate(board.getState());
+    private double[] expansion() throws IOException {
+        if (!gameContinue()) return board.getZ();
+        NetResult result = NET.evaluate(board.getState());
         double[] mask = new double[Main.ACTION_SIZE];
         Arrays.fill(mask, Double.NEGATIVE_INFINITY);
         var moves = board.legalMoves(parent);
@@ -91,14 +90,14 @@ class Node implements Iterable<Node> {
         return result.value();
     }
 
-    void backPropagation(double[] value) {
+    private void backPropagation(double[] value) {
         for (Node node = this; node != null; node = node.parent) {
             for (int i = 0; i < Main.PLAYER_COUNT; ++i) node.valueSum[i] += value[i];
             ++node.visits;
         }
     }
 
-    Node selectMove() {
+    private Node selectMove() {
         int total = 0;
         for (Node child : this) total += child.visits;
         for (Node child : this) child.searchPolicy = (double) child.visits / total;
@@ -110,15 +109,15 @@ class Node implements Iterable<Node> {
         return null;
     }
 
-    void createTrainingData() throws IOException {
-        var z = board.getFinalResult();
+    private void createTrainingData() throws IOException {
+        var z = board.getZ();
         var trainingData = new ArrayList<TrainingData>();
         for (Node node = parent; node != null; node = node.parent) {
             double[] pi = new double[Main.ACTION_SIZE];
             for (int i = 0; i < Main.ACTION_SIZE; ++i) if (node.children[i] != null) pi[i] = node.children[i].searchPolicy;
             trainingData.add(new TrainingData(node.board.getState(), pi));
         }
-        Main.NET.learn(trainingData.reversed().toArray(TrainingData[]::new), z);
+        NET.learn(trainingData.reversed().toArray(TrainingData[]::new), z);
     }
 
     @Override

@@ -1,1 +1,0 @@
-record LearnResult(double policyLoss, double valueLoss, double loss) {}

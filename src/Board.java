@@ -20,7 +20,7 @@ record Board(int[][] board, int player) {
         board[pos.row()][pos.col()] = value;
     }
 
-    double[] getZ() {
+    double[] getFinalResult() {
         var scores = new int[Main.PLAYER_COUNT];
         var checkedEmpty = new HashSet<Pos>();
         for (Pos pos : Pos.ALL_POS) {
@@ -41,9 +41,9 @@ record Board(int[][] board, int player) {
             }
         }
         int sum = Arrays.stream(scores).sum();
-        var z = new double[Main.PLAYER_COUNT];
-        for (int i = 0; i < Main.PLAYER_COUNT; ++i) z[i] = (double) scores[i] / sum;
-        return z;
+        var finalResult = new double[Main.PLAYER_COUNT];
+        for (int i = 0; i < Main.PLAYER_COUNT; ++i) finalResult[i] = (double) scores[i] / sum;
+        return finalResult;
     }
 
     double[][][] getState() {

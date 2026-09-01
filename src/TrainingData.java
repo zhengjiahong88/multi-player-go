@@ -1,2 +1,2 @@
-record TrainingData(double[][][] state, double[] pi, double[] z) {
+record TrainingData(double[][][] state, double[] pi) {
 }

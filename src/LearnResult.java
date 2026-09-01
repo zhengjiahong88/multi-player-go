@@ -1,4 +1,1 @@
-package PACKAGE_NAME;
-
-public record LearnResult() {
-}
+record LearnResult(double policyLoss, double valueLoss, double loss) {}

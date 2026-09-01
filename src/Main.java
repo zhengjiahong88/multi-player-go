@@ -6,6 +6,6 @@ class Main {
 
     void main() throws IOException {
         NET = new PythonNet("C:\\Users\\User\\anaconda3\\envs\\mcts\\python.exe", "net.py");
-        new Node();
+        for (int i = 0; i < 1000; ++i) new Node();
     }
 }

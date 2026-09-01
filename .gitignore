@@ -28,3 +28,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+.codex-temp
+.idea
+.gitignore
+multi-player go.iml
+push.bat
+*.pptx

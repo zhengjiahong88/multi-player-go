@@ -13,7 +13,7 @@ class Node implements Iterable<Node> {
     final Node parent;
     final Board board;
     final double[] valueSum = new double[Main.PLAYER_COUNT];
-    double prior, pi;
+    double prior, searchPolicy;
     int passes, visits;
 
     Node(Node parent, double[] probabilities, Pos pos) {
@@ -41,7 +41,7 @@ class Node implements Iterable<Node> {
                 Node leaf = node.selection();
                 leaf.backPropagation(leaf.expansion());
             }
-            node = node.calculatePiAndSelectMove();
+            node = node.selectMove();
         }
         node.createTrainingData();
     }
@@ -71,7 +71,7 @@ class Node implements Iterable<Node> {
     }
 
     double[] expansion() throws IOException {
-        if (!gameContinue()) return board.getZ();
+        if (!gameContinue()) return board.getFinalResult();
         NetResult result = Main.NET.evaluate(board.getState());
         double[] mask = new double[Main.ACTION_SIZE];
         Arrays.fill(mask, Double.NEGATIVE_INFINITY);
@@ -98,28 +98,27 @@ class Node implements Iterable<Node> {
         }
     }
 
-    Node calculatePiAndSelectMove() {
+    Node selectMove() {
         int total = 0;
         for (Node child : this) total += child.visits;
-        for (Node child : this) child.pi = (double) child.visits / total;
+        for (Node child : this) child.searchPolicy = (double) child.visits / total;
         double r = Math.random(), sum = 0;
         for (Node child : this) {
-            sum += child.pi;
+            sum += child.searchPolicy;
             if (r < sum) return child;
         }
         return null;
     }
 
-    void createTrainingData() {
+    void createTrainingData() throws IOException {
+        var z = board.getFinalResult();
         var trainingData = new ArrayList<TrainingData>();
         for (Node node = parent; node != null; node = node.parent) {
             double[] pi = new double[Main.ACTION_SIZE];
-            for (int i = 0; i < Main.ACTION_SIZE; ++i) if (node.children[i] != null) pi[i] = node.children[i].pi;
-
-            trainingData.add(new TrainingData(node.board.getState(), pi, node.board.getZ()));
+            for (int i = 0; i < Main.ACTION_SIZE; ++i) if (node.children[i] != null) pi[i] = node.children[i].searchPolicy;
+            trainingData.add(new TrainingData(node.board.getState(), pi));
         }
-        Collections.reverse(trainingData);
-        System.out.println("資料數量 =" + trainingData.size());
+        Main.NET.learn(trainingData.reversed().toArray(TrainingData[]::new), z);
     }
 
     @Override

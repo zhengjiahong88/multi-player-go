@@ -5,8 +5,8 @@ class PythonNet implements AutoCloseable {
     private final BufferedWriter writer;
     private final BufferedReader reader;
 
-    PythonNet(String python, String script) throws IOException {
-        process = new ProcessBuilder(python, script, String.valueOf(Main.SIZE), String.valueOf(Main.PLAYER_COUNT))
+    PythonNet() throws IOException {
+        process = new ProcessBuilder("C:\\Users\\User\\anaconda3\\envs\\mcts\\python.exe", "net.py", String.valueOf(Main.SIZE), String.valueOf(Main.PLAYER_COUNT))
                 .redirectError(ProcessBuilder.Redirect.INHERIT).start();
         writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
         reader = new BufferedReader(new InputStreamReader(process.getInputStream()));

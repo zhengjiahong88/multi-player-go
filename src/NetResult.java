@@ -1,1 +1,2 @@
-record NetResult(double[] policy, double[] value) {}
+record NetResult(double[] policy, double[] value) {
+}

@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.util.*;
 
 class Node implements Iterable<Node> {
-    static final int SIMULATIONS = 10000;
+    static final int SIMULATIONS = 100;
 
     static int moveIndex(Pos pos) {
         if (pos == null) return Main.POINTS;

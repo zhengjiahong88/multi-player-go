@@ -18,7 +18,6 @@ class Node implements Iterable<Node> {
     private int passes, visits;
 
     Node(Node parent, double[] probabilities, Pos pos) throws IOException {
-        NET = new PythonNet();
         passes = parent.passes;
         if (pos == null) {
             this.board = parent.board.pass();
@@ -35,6 +34,7 @@ class Node implements Iterable<Node> {
     }
 
     Node() throws IOException {
+        NET = new PythonNet();
         board = new Board(1);
         parent = null;
         Node node = this;
